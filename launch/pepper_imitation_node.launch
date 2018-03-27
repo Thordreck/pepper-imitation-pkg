@@ -7,4 +7,6 @@
     <param name="max_planning_time"           type="double" value="5.0" />
     <param name="max_planning_attempts"       type="int" value="10" />
     <param name="motion_planner"              type="string" value="RRTConnectionConfigDefault" />
+
+    <include file="$(find pepper_moveit_config)/launch/moveit_planner.launch" />
 </launch>
