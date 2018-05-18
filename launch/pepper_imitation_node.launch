@@ -4,10 +4,10 @@
     <param name="velocity_scaling_factor"     type="double" value="1.0" />
     <param name="acceleration_scaling_factor" type="double" value="1.0" />
     <param name="goal_joint_tolerance"        type="double" value="0.1" />
-    <param name="max_planning_time"           type="double" value="5.0" />
+    <param name="goal_position_tolerance"     type="double" value="0.2" />
+    <param name="goal_orientation_tolerance"  type="double" value="0.1" />
+    <param name="max_planning_time"           type="double" value="1.0" />
     <param name="max_planning_attempts"       type="int" value="10" />
-    <param name="motion_planner"              type="string" value="RRTConnectionConfigDefault" />
+    <param name="motion_planner"              type="string" value="RRTConnectkConfigDefault" />
     <param name="skeleton_tracker_base_frame" type="string" value="/camera_link" />
-
-    <include file="$(find pepper_moveit_config)/launch/moveit_planner.launch" />
 </launch>
