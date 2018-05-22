@@ -4,10 +4,16 @@
 #include <string>
 #include <map>
 #include <array>
+#include <functional>
+#include <atomic>
+#include <future>
+#include <thread>
+#include <chrono>
 
 #include <ros/ros.h>
 #include <tf/transform_listener.h>
 #include <moveit/move_group_interface/move_group_interface.h>
+#include <pepper_imitation/ImitationPose.h>
 
 namespace Pepper
 {
@@ -16,44 +22,55 @@ namespace Pepper
         public:
             using PlannerInterface = moveit::planning_interface::MoveGroupInterface;
             using Plan             = moveit::planning_interface::MoveGroupInterface::Plan;
-            using JointsMap        = std::map<std::string, double>;
-            using RPY              = std::array<double, 3>;
 
         public:
             ImitationNode();
             ~ImitationNode();
 
-            void Loop();
-
         private:
-            void MoveArmsJoints();
-            void MoveArmsTrajectory();
+            void PoseCallback(const pepper_imitation::ImitationPose& _imitation_msg);
+
+            void SetUpInterface(PlannerInterface& _interface);
+            void ResetInterface(PlannerInterface& _interface);
             void PlanTrajectory(PlannerInterface& _interface);
             void ExecuteTrajectory(PlannerInterface& _interface);
-            void SetUpInterface(PlannerInterface& _interface, JointsMap& _joints);
-            void ResetInterface(PlannerInterface& _interface);
-            void SetJointsToCurrentState(PlannerInterface& _interface, JointsMap& _joints);
+
+            void CheckPose(std::function<bool(void)> _check_pose, const std::chrono::seconds& _timeout);
+            void StopCheckingCurrentPose();
+            void SendResult(uint8_t _result);
+
+            bool CheckHandsUpPose();
+            bool CheckHandsOnHeadPose();
 
             //Utils
-            RPY                  GetFrameRPY(const std::string& _origin_frame, const std::string& _end_frame);
             tf::StampedTransform GetTransform(const std::string& _origin_frame, const std::string& _end_frame);
             tf::Vector3          ToROSAxis(const tf::Vector3& _vector);
 
         private:
             ros::NodeHandle node_handle_;
             ros::AsyncSpinner async_spinner_;
-            ros::Rate loop_rate_ { 1 };
+            ros::Rate loop_rate_ { 60 };
+            ros::Subscriber pose_subscriber_;
+            ros::Publisher imitation_result_publisher_;
 
             tf::TransformListener tf_listener_;
 
-            //PlannerInterface arms_interface_ { "both_arms" };
-            //PlannerInterface arms_interface_ { "left_arm" };
-            //PlannerInterface head_interface_ { "head" };
+            PlannerInterface both_arms_interface_ { "both_arms" };
 
-            JointsMap arms_joints_;
-            JointsMap head_joints_;
+            std::atomic<bool> check_pose_ { false };
+            std::future<void> check_pose_task_;
 
-            std::string skeleton_tracker_base_frame_ { "/camera_link" };
+            const std::map<uint8_t, std::string> pose_name_map_
+            {
+                { pepper_imitation::ImitationPose::HANDS_UP,      "hands_up" },
+                { pepper_imitation::ImitationPose::HANDS_ON_HEAD, "hands_on_head" },
+            };
+
+            const std::map<uint8_t, std::function<bool(void)>> check_poses_functions_
+            {
+                { pepper_imitation::ImitationPose::HANDS_UP,      [this] { return CheckHandsUpPose(); } },
+                { pepper_imitation::ImitationPose::HANDS_ON_HEAD, [this] { return CheckHandsOnHeadPose(); } },
+            };
 
             //Motion planner param settings
             double velocity_scaling_factor_         { 0.1 };
@@ -65,6 +82,8 @@ namespace Pepper
             int    max_planning_attempts_           { 10 };
             std::string motion_planner_             { "RRTConnectionConfigDefault" };
             const std::string pose_reference_frame_ { "/torso" };
+
+            std::string skeleton_tracker_base_frame_ { "/camera_link" };
     };
 }
 
