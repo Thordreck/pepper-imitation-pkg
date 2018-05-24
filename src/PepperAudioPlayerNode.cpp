@@ -12,11 +12,17 @@ namespace Pepper
 
         node_handle_.param("host", host, host);
         node_handle_.param("port", port, port);
+        node_handle_.param("audio_folder", audio_folder_, audio_folder_);
 
         commands_subscriber_ = node_handle_.subscribe("pepper_imitation/cmd_audio_player", 1, &AudioPlayerNode::CommandsCallback, this);
         progress_publisher_  = node_handle_.advertise<std_msgs::Float32>("pepper_imitation/audio_player_progress", 1);
 
         Connect(host, port);
+    }
+
+    AudioPlayerNode::~AudioPlayerNode()
+    {
+        Stop();
     }
 
     void AudioPlayerNode::Loop()
@@ -36,6 +42,9 @@ namespace Pepper
             case pepper_imitation::AudioPlayerCommand::STOP:
                 Stop();
                 break;
+            case pepper_imitation::AudioPlayerCommand::PAUSE:
+                Pause();
+                break;
             case pepper_imitation::AudioPlayerCommand::GOTO:
                 GoTo(_command_msg.time);
                 break;
@@ -48,23 +57,39 @@ namespace Pepper
     void AudioPlayerNode::PublishProgress()
     {
         std_msgs::Float32 progress_msg;
-        progress_msg.data = GetProgress();
+        progress_msg.data = file_task_id_ == -1 ? 0.0 : GetProgress();
         progress_publisher_.publish(progress_msg);
     }
 
     void AudioPlayerNode::Play(const std::string& _file)
     {
-        file_task_id_ = audio_player_service_.call<int>("loadFile", _file);
-        audio_player_service_.call<void>("play", file_task_id_);
+        Stop();
+        file_task_id_ = audio_player_service_.call<int>("loadFile", audio_folder_ + _file);
+        SetVolume(0.8);
+        audio_player_service_.async<void>("play", file_task_id_);
     }
 
+    void AudioPlayerNode::Pause()
+    {
+        if(file_task_id_ == -1) { return; }
+        audio_player_service_.call<void>("pause", file_task_id_);
+    }
+    
     void AudioPlayerNode::Stop()
     {
         audio_player_service_.call<void>("stopAll");
     }
 
+    void AudioPlayerNode::SetVolume(float _volume)
+    {
+        if(file_task_id_ == -1) { return; }
+        audio_player_service_.call<void>("setVolume", file_task_id_, _volume);
+    }
+
     void AudioPlayerNode::GoTo(uint16_t _seconds)
     {
+        if(file_task_id_ == -1) { return; }
+        Pause();
         audio_player_service_.call<void>("goTo", file_task_id_, _seconds);
     }
 
@@ -79,6 +104,7 @@ namespace Pepper
         {
             session_->connect("tcp://" + _host + ":" + std::to_string(_port)).wait();
             audio_player_service_ = session_->service("ALAudioPlayer");
+            Stop();
         }
         catch(const std::exception&)
         {

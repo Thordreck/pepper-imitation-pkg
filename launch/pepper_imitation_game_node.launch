@@ -1,0 +1,3 @@
+<launch>
+    <node pkg="pepper_imitation" name="pepper_imitation_game_node" type="pepper_imitation_game_node.py" output="screen" />
+</launch>

@@ -15,7 +15,7 @@ namespace Pepper
     {
         public:
             AudioPlayerNode();
-            ~AudioPlayerNode() = default;
+            ~AudioPlayerNode();
 
             void Loop();
 
@@ -27,6 +27,8 @@ namespace Pepper
             //Player Commands
             void Play(const std::string& _file);
             void Stop();
+            void Pause();
+            void SetVolume(float _volume);
             void GoTo(uint16_t _seconds);
 
             float GetProgress();
@@ -40,6 +42,8 @@ namespace Pepper
             qi::SessionPtr session_;
             qi::AnyObject  audio_player_service_;
             int file_task_id_ { -1 };
+
+            std::string audio_folder_ { "/home/nao/resources/audio/" };
     };
 }
 

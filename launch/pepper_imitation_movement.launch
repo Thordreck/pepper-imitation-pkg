@@ -1,0 +1,4 @@
+<launch>
+    <include file="$(find pepper_imitation)/launch/pepper_imitation_node.launch" />
+    <include file="$(find pepper_moveit_config)/launch/moveit_planner.launch" />
+</launch>

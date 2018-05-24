@@ -41,6 +41,7 @@ namespace Pepper
 
             bool CheckHandsUpPose();
             bool CheckHandsOnHeadPose();
+            bool CheckHandsOnFrontPose();
 
             //Utils
             tf::StampedTransform GetTransform(const std::string& _origin_frame, const std::string& _end_frame);
@@ -64,12 +65,14 @@ namespace Pepper
             {
                 { pepper_imitation::ImitationPose::HANDS_UP,      "hands_up" },
                 { pepper_imitation::ImitationPose::HANDS_ON_HEAD, "hands_on_head" },
+                { pepper_imitation::ImitationPose::HANDS_ON_FRONT,"hands_on_front" },
             };
 
             const std::map<uint8_t, std::function<bool(void)>> check_poses_functions_
             {
                 { pepper_imitation::ImitationPose::HANDS_UP,      [this] { return CheckHandsUpPose(); } },
                 { pepper_imitation::ImitationPose::HANDS_ON_HEAD, [this] { return CheckHandsOnHeadPose(); } },
+                { pepper_imitation::ImitationPose::HANDS_ON_FRONT,[this] { return CheckHandsOnFrontPose(); } },
             };
 
             //Motion planner param settings

@@ -1,0 +1,10 @@
+<launch>
+    <include file="$(find pepper_dcm_bringup)/launch/pepper_bringup.launch">
+        <arg name="network_interface" value="wlp3s0" />
+    </include>
+
+    <include file="$(find naoqi_driver)/launch/naoqi_driver.launch">
+        <arg name="network_interface" value="wlp3s0" />
+    </include>
+
+</launch>

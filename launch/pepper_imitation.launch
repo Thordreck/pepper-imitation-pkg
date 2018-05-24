@@ -1,4 +1,9 @@
 <launch>
-    <include file="$(find pepper_imitation)/launch/pepper_imitation_node.launch" />
-    <include file="$(find pepper_moveit_config)/launch/moveit_planner.launch" />
+    <include file="$(find pepper_imitation)/launch/pepper_imitation_bringup.launch" />
+    <include file="$(find pepper_imitation)/launch/pepper_imitation_kinect.launch" />
+    <include file="$(find pepper_imitation)/launch/pepper_imitation_tablet_node.launch" />
+    <include file="$(find pepper_imitation)/launch/pepper_imitation_tts_node.launch" />
+    <include file="$(find pepper_imitation)/launch/pepper_imitation_audio_player_node.launch" />
+    <include file="$(find pepper_imitation)/launch/pepper_imitation_game_node.launch" />
+    <include file="$(find pepper_imitation)/launch/pepper_imitation_movement.launch" />
 </launch>

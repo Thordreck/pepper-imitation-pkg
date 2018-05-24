@@ -1,0 +1,4 @@
+<launch>
+    <node pkg="openni_tracker" name="openni_tracker" type="openni_tracker" output="screen" />
+    <include file="$(find openni_launch)/launch/openni.launch" />
+</launch>

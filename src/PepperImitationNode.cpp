@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <tf/transform_datatypes.h>
 #include <pepper_imitation/ImitationResult.h>
 
@@ -158,19 +159,25 @@ namespace Pepper
 
     bool ImitationNode::CheckHandsUpPose()
     {
-        const auto& head_to_left_hand_  = GetTransform("/head_1", "/left_hand_1");
-        const auto& head_to_right_hand_ = GetTransform("/head_1", "/right_hand_1");
+        const auto& head_to_left_hand_  = GetTransform("/head", "/left_hand");
+        const auto& head_to_right_hand_ = GetTransform("/head", "/right_hand");
 
-        ROS_ERROR("HEAD TO LEFT HAND (%f,%f,%f)", head_to_left_hand_.getOrigin().x(),
-                                                  head_to_left_hand_.getOrigin().y(),
-                                                  head_to_left_hand_.getOrigin().z());
         return head_to_left_hand_.getOrigin().y() > 0.0 && head_to_right_hand_.getOrigin().y() > 0.0;
     }
 
     bool ImitationNode::CheckHandsOnHeadPose()
     {
-        const auto& head_to_left_hand_  = GetTransform("/head_1", "/left_hand_1");
-        const auto& head_to_right_hand_ = GetTransform("/head_1", "/right_hand_1");
+        const auto& head_to_left_hand_  = GetTransform("/head", "/left_hand");
+        const auto& head_to_right_hand_ = GetTransform("/head", "/right_hand");
+
+        return head_to_left_hand_.getOrigin().y() > 0.0 && head_to_right_hand_.getOrigin().y() > 0.0 &&
+            head_to_left_hand_.getOrigin().distance(head_to_right_hand_.getOrigin()) <= 0.2;
+    }
+
+    bool ImitationNode::CheckHandsOnFrontPose()
+    {
+        const auto& head_to_left_hand_  = GetTransform("/head", "/left_hand");
+        const auto& head_to_right_hand_ = GetTransform("/head", "/right_hand");
 
         return head_to_left_hand_.getOrigin().y() > 0.0 && head_to_right_hand_.getOrigin().y() > 0.0 &&
             head_to_left_hand_.getOrigin().distance(head_to_right_hand_.getOrigin()) <= 0.2;
@@ -178,8 +185,17 @@ namespace Pepper
 
     tf::StampedTransform ImitationNode::GetTransform(const std::string& _origin_frame, const std::string& _end_frame)
     {
+        std::string person_id {"_"};
+        std::vector<std::string> frames {};
+        
+        tf_listener_.getFrameStrings(frames);
+        const auto& skeleton_part_it = std::find_if(frames.cbegin(), frames.cend(),
+                [](const auto& frame_name){ return frame_name.rfind("torso_", 0) == 0; });
+
+        if(skeleton_part_it != frames.cend()) { person_id += skeleton_part_it->back(); }
+
         tf::StampedTransform transform;
-        tf_listener_.lookupTransform(_origin_frame, _end_frame, ros::Time(0), transform);
+        tf_listener_.lookupTransform(_origin_frame + person_id, _end_frame + person_id, ros::Time(0), transform);
 
         return transform;
     }
