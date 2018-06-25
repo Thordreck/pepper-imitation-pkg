@@ -127,21 +127,20 @@ namespace Pepper
 
     bool ImitationNode::CheckHandsOnHeadPose()
     {
-        const auto& head_to_left_hand_  = GetTransform("/head", "/left_hand");
-        const auto& head_to_right_hand_ = GetTransform("/head", "/right_hand");
+        const auto& head_to_left_hand  = GetTransform("/head", "/left_hand");
+        const auto& head_to_right_hand = GetTransform("/head", "/right_hand");
 
-        return head_to_left_hand_.getOrigin().y() > 0.0 && head_to_right_hand_.getOrigin().y() > 0.0 &&
-            head_to_left_hand_.getOrigin().distance(head_to_right_hand_.getOrigin()) <= 0.2;
+        return head_to_left_hand.getOrigin().y() > 0.0 && head_to_right_hand.getOrigin().y() > 0.0 &&
+            head_to_left_hand.getOrigin().distance(head_to_right_hand.getOrigin()) <= 0.2;
     }
 
     bool ImitationNode::CheckHandsOnFrontPose()
     {
-        const auto& head_to_left_hand_  = GetTransform("/head", "/left_hand");
-        const auto& head_to_right_hand_ = GetTransform("/head", "/right_hand");
+        const auto& head_to_left_hand  = GetTransform("/head", "/left_hand");
+        const auto& head_to_right_hand = GetTransform("/head", "/right_hand");
 
-        return true;
-        //return head_to_left_hand_.getOrigin().y() > 0.0 && head_to_right_hand_.getOrigin().y() > 0.0 &&
-        //    head_to_left_hand_.getOrigin().distance(head_to_right_hand_.getOrigin()) <= 0.2;
+        return head_to_left_hand.getOrigin().y() < 0.0 && head_to_right_hand.getOrigin().y() < 0.0 &&
+            head_to_left_hand.getOrigin().distance(head_to_right_hand.getOrigin()) <= 0.2;
     }
 
     bool ImitationNode::CheckHandsOnShoulderPose()
@@ -155,12 +154,11 @@ namespace Pepper
 
     bool ImitationNode::CheckCrossedArmsPose()
     {
-        const auto& torso_to_left_hand  = GetTransform("/torso", "/left_hand");
-        const auto& torso_to_right_hand = GetTransform("/torso", "/right_hand");
+        const auto& head_to_left_hand  = GetTransform("/head", "/left_hand");
+        const auto& head_to_right_hand = GetTransform("/head", "/right_hand");
 
-        //return torso_to_left_hand.getOrigin().y() <= 0.0 && torso_to_right_hand.getOrigin().y() <= 0.0;
-        return true;
-        //return torso_to_left_hand.getOrigin().distance(torso_to_right_hand.getOrigin()) <= 0.5;
+        return head_to_left_hand.getOrigin().y() < 0.0 && head_to_right_hand.getOrigin().y() < 0.0 &&
+            head_to_left_hand.getOrigin().distance(head_to_right_hand.getOrigin()) <= 0.2;
     }
 
     bool ImitationNode::CheckHandsOnSidePose()
@@ -168,17 +166,16 @@ namespace Pepper
         const auto& hip_to_left_hand  = GetTransform("/left_hip", "/left_hand");
         const auto& hip_to_right_hand = GetTransform("/right_hip", "/right_hand");
 
-        return hip_to_left_hand.getOrigin().length() <= 0.5 && hip_to_right_hand.getOrigin().length() <= 0.5;
+        return hip_to_left_hand.getOrigin().length() <= 0.2 && hip_to_right_hand.getOrigin().length() <= 0.2;
     }
 
     bool ImitationNode::CheckHandsTogetherPose()
     {
-        const auto& torso_to_left_hand  = GetTransform("/torso", "/left_hand");
-        const auto& torso_to_right_hand = GetTransform("/torso", "/right_hand");
+        const auto& head_to_left_hand  = GetTransform("/head", "/left_hand");
+        const auto& head_to_right_hand = GetTransform("/head", "/right_hand");
 
-        //return torso_to_left_hand.getOrigin().distance(torso_to_right_hand.getOrigin()) <= 0.5;
-        //return torso_to_left_hand.getOrigin().length() <= 0.5 && torso_to_right_hand.getOrigin().length() <= 0.5;
-        return true;
+        return head_to_left_hand.getOrigin().y() < 0.0 && head_to_right_hand.getOrigin().y() < 0.0 &&
+            head_to_left_hand.getOrigin().distance(head_to_right_hand.getOrigin()) <= 0.2;
     }
 
     bool ImitationNode::CheckHandOnMouthPose()
