@@ -64,7 +64,7 @@ namespace Pepper
     void AudioPlayerNode::Play(const std::string& _file)
     {
         Stop();
-        file_task_id_ = audio_player_service_.call<int>("loadFile", audio_folder_ + _file);
+        file_task_id_ = audio_player_service_.async<int>("loadFile", audio_folder_ + _file).wait();
         SetVolume(0.8);
         audio_player_service_.async<void>("play", file_task_id_);
     }
@@ -72,30 +72,30 @@ namespace Pepper
     void AudioPlayerNode::Pause()
     {
         if(file_task_id_ == -1) { return; }
-        audio_player_service_.call<void>("pause", file_task_id_);
+        audio_player_service_.async<void>("pause", file_task_id_);
     }
     
     void AudioPlayerNode::Stop()
     {
-        audio_player_service_.call<void>("stopAll");
+        audio_player_service_.async<void>("stopAll");
     }
 
     void AudioPlayerNode::SetVolume(float _volume)
     {
         if(file_task_id_ == -1) { return; }
-        audio_player_service_.call<void>("setVolume", file_task_id_, _volume);
+        audio_player_service_.async<void>("setVolume", file_task_id_, _volume);
     }
 
     void AudioPlayerNode::GoTo(uint16_t _seconds)
     {
         if(file_task_id_ == -1) { return; }
         Pause();
-        audio_player_service_.call<void>("goTo", file_task_id_, _seconds);
+        audio_player_service_.async<void>("goTo", file_task_id_, _seconds);
     }
 
     float AudioPlayerNode::GetProgress()
     {
-        return audio_player_service_.call<float>("getCurrentPosition", file_task_id_);
+        return audio_player_service_.async<float>("getCurrentPosition", file_task_id_);
     }
 
     void AudioPlayerNode::Connect(const std::string& _host, int _port)

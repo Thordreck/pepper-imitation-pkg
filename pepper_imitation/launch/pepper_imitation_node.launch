@@ -1,13 +1,6 @@
 <launch>
     <node pkg="pepper_imitation" name="pepper_imitation_node" type="pepper_imitation_node" output="screen" />
 
-    <param name="velocity_scaling_factor"     type="double" value="1.0" />
-    <param name="acceleration_scaling_factor" type="double" value="1.0" />
-    <param name="goal_joint_tolerance"        type="double" value="0.1" />
-    <param name="goal_position_tolerance"     type="double" value="0.2" />
-    <param name="goal_orientation_tolerance"  type="double" value="0.1" />
-    <param name="max_planning_time"           type="double" value="1.0" />
-    <param name="max_planning_attempts"       type="int" value="10" />
-    <param name="motion_planner"              type="string" value="RRTConnectkConfigDefault" />
-    <param name="skeleton_tracker_base_frame" type="string" value="/camera_link" />
+    <param name="host" type="string" value="10.77.3.19" />
+    <param name="port" type="int" value="9559" />
 </launch>

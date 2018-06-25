@@ -1,3 +1,5 @@
+#include <chrono>
+#include <thread>
 #include <pepper_imitation/UserCommand.h>
 
 #include "PepperTabletNode.hpp"
@@ -16,8 +18,10 @@ namespace Pepper
         user_command_publisher_  = node_handle_.advertise<pepper_imitation::UserCommand>("pepper_imitation/cmd_user", 1);
 
         Connect(host, port);
-        tablet_service_.call<void>("showInputTextDialog", "Start Imitation Game?", "Start!", "Maybe later", "Input your name here...", 20);
-        tablet_service_.connect("onInputText", boost::function<void(int, std::string)>(boost::bind(&TabletNode::OnDialogInput, this, _1, _2)));
+        tablet_service_.connect("onJSEvent", boost::function<void(std::string)>(boost::bind(&TabletNode::OnDialogInput, this, _1)));
+        tablet_service_.connect("onTouchDown", boost::function<void(float, float)>(boost::bind(&TabletNode::OnTouchDown, this, _1, _2)));
+
+        tablet_service_.call<void>("showWebview", "http://10.77.3.117:9999/comptine_image_full.png");
     }
 
     //Private
@@ -35,10 +39,20 @@ namespace Pepper
         }
     }
 
-    void TabletNode::OnDialogInput(int _validation, const std::string& _input_text)
+    void TabletNode::OnDialogInput(std::string _input_text)
     {
         pepper_imitation::UserCommand user_command_msg;
         user_command_msg.command = pepper_imitation::UserCommand::START_GAME;
+        user_command_msg.args = _input_text;
         user_command_publisher_.publish(user_command_msg);
+    }
+
+    void TabletNode::OnTouchDown(float _x, float _y)
+    {
+        tablet_service_.call<void>("showWebview", "http://198.18.0.1/apps/boot-config/preloading_dialog.html");
+        using namespace std::literals::chrono_literals;
+        std::this_thread::sleep_for(3s);
+
+        tablet_service_.call<void>("executeJS", script_);
     }
 }

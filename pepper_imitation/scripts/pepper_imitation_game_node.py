@@ -9,26 +9,27 @@ import tf
 
 class WaitUserInput(smach.State) :
     def __init__(self):
-        smach.State.__init__(self, outcomes = ['start', 'stop', 'waiting', 'preempted'])
+        smach.State.__init__(self, outcomes = ['start', 'stop', 'waiting', 'preempted'], output_keys = ['player_name'])
 
     def execute(self, user_data):
         try:
             msg = rospy.wait_for_message('/pepper_imitation/cmd_user', pepper_imitation.msg.UserCommand, 1)
             if msg.command == pepper_imitation.msg.UserCommand.START_GAME:
+                user_data.player_name = msg.args;
                 return 'start'
             elif msg.command == pepper_imitation.msg.UserCommand.STOP_GAME:
                 return 'stop'
         except rospy.ROSException:
             return 'waiting'
 
-@smach.cb_interface(outcomes = ['finished'])
+@smach.cb_interface(outcomes = ['finished'], input_keys=['player_name'], output_keys=['player_name'])
 def init_game(user_data):
     audio_player_publisher = rospy.Publisher('pepper_imitation/cmd_audio_player', pepper_imitation.msg.AudioPlayerCommand, queue_size = 1)
     tts_publisher = rospy.Publisher('pepper_imitation/cmd_say', std_msgs.msg.String, queue_size = 1)
     rospy.sleep(1.0);
 
-    audio_player_publisher.publish(pepper_imitation.msg.AudioPlayerCommand(command=pepper_imitation.msg.AudioPlayerCommand.PLAY, file="tourne_tourne_petit_moulin.wav"))
-    tts_publisher.publish(std_msgs.msg.String("Let's start the game!"))
+    audio_player_publisher.publish(pepper_imitation.msg.AudioPlayerCommand(command=pepper_imitation.msg.AudioPlayerCommand.PLAY, file="comptine.wav"))
+    tts_publisher.publish(std_msgs.msg.String("\\style=joyful\\ Bonjour, je m'appelle Pepper. " + user_data.player_name + ", est-ce que tu veux jouer avec moi?"))
     rospy.sleep(5.0);
 
     return 'finished'
@@ -50,20 +51,33 @@ class CheckPoseState(smach.State) :
 
 class GameIteration(smach.State) :
     def __init__(self):
-        smach.State.__init__(self, outcomes = ['continue', 'game_over', 'preempted'], input_keys = ['previous_imitation_succeeded'], output_keys = ['synchro_time', 'next_pose'])
-        self.game_sections = [{'start_time': 1,   'pose': pepper_imitation.msg.ImitationPose.HANDS_UP},
-                              {'start_time': 60,  'pose': pepper_imitation.msg.ImitationPose.HANDS_ON_HEAD},
-                              {'start_time': 120, 'pose': pepper_imitation.msg.ImitationPose.HANDS_ON_FRONT}]
+        self.audio_player_publisher = rospy.Publisher('pepper_imitation/cmd_audio_player', pepper_imitation.msg.AudioPlayerCommand, queue_size = 1)
+        smach.State.__init__(self, outcomes = ['continue', 'game_over', 'preempted'], input_keys = ['previous_imitation_succeeded'], output_keys = ['synchro_time', 'next_pose', 'score', 'player_name'])
+        self.game_sections = [{'start_time': 20,  'pose': pepper_imitation.msg.ImitationPose.HANDS_UP},
+                              {'start_time': 43,  'pose': pepper_imitation.msg.ImitationPose.HANDS_ON_HEAD},
+                              {'start_time': 65,  'pose': pepper_imitation.msg.ImitationPose.HANDS_ON_SHOULDERS},
+                              {'start_time': 88,  'pose': pepper_imitation.msg.ImitationPose.HANDS_ON_FRONT},
+                              {'start_time': 110, 'pose': pepper_imitation.msg.ImitationPose.CROSSED_ARMS},
+                              {'start_time': 132, 'pose': pepper_imitation.msg.ImitationPose.HANDS_ON_SIDES},
+                              {'start_time': 154, 'pose': pepper_imitation.msg.ImitationPose.HANDS_TOGETHER},
+                              {'start_time': 175, 'pose': pepper_imitation.msg.ImitationPose.HAND_ON_MOUTH}]
+
         self.current_section = 0;
         self.num_iterations = 0;
 
     def execute(self, user_data):
+        if (self.num_iterations == 0):
+            user_data.score = 0;
+
         if (self.num_iterations > 0) and ('previous_imitation_succeeded' in user_data)  and (user_data.previous_imitation_succeeded == True):
             self.current_section = self.current_section + 1
             if self.current_section >= len(self.game_sections):
                 self.current_section = 0
                 self.num_iterations  = 0
                 return 'game_over'
+        elif (self.num_iterations > 0) and ('previous_imitation_succeeded' in user_data)  and (user_data.previous_imitation_succeeded == False):
+            self.audio_player_publisher.publish(pepper_imitation.msg.AudioPlayerCommand(command=pepper_imitation.msg.AudioPlayerCommand.GOTO, time=self.game_sections[self.current_section]['start_time']))
+            self.current_section = self.current_section - 1;
 
         self.num_iterations     = self.num_iterations + 1;
         user_data.synchro_time  = self.game_sections[self.current_section]['start_time']
@@ -79,36 +93,41 @@ def send_pose(user_data):
     pose_publisher = rospy.Publisher('pepper_imitation/cmd_set_pose', pepper_imitation.msg.ImitationPose, queue_size = 1)
     rospy.sleep(1.0);
 
-    tts_publisher.publish(std_msgs.msg.String("Do the same as me!"))
-    pose_publisher.publish(pepper_imitation.msg.ImitationPose(pose = user_data.pose, timeout = 15))
+    tts_publisher.publish(std_msgs.msg.String("\\style=joyful\\ Fait comme moi!"))
+    pose_publisher.publish(pepper_imitation.msg.ImitationPose(pose = user_data.pose, timeout = 20))
     return 'finished'
 
-@smach.cb_interface(outcomes = ['finished'], input_keys = ['positive_feedback'])
+@smach.cb_interface(outcomes = ['finished'], input_keys = ['positive_feedback', 'player_name', 'score'])
 def give_feedback(user_data):
     tts_publisher  = rospy.Publisher('pepper_imitation/cmd_say', std_msgs.msg.String, queue_size = 1)
     rospy.sleep(1.0);
 
-    tts_publisher.publish(std_msgs.msg.String("Good job!" if user_data.positive_feedback else "Try again!"))
+    if(user_data.positive_feedback):
+        user_data.score += 20;
+    else:
+        user_data.score -= 5;
+
+    tts_publisher.publish(std_msgs.msg.String("\\style=joyful\\ Bravo, bravo!" if user_data.positive_feedback else "\\style=didactic\\ On recommence!"))
     rospy.sleep(4.0);
     return 'finished'
 
-@smach.cb_interface(outcomes = ['finished'])
+@smach.cb_interface(outcomes = ['finished'], input_keys=['player_name', 'score'])
 def end_session(user_data):
     audio_player_publisher = rospy.Publisher('pepper_imitation/cmd_audio_player', pepper_imitation.msg.AudioPlayerCommand, queue_size = 1)
     tts_publisher = rospy.Publisher('pepper_imitation/cmd_say', std_msgs.msg.String, queue_size = 1)
     rospy.sleep(1.0);
 
-    tts_publisher.publish(std_msgs.msg.String("Phew, this is all for now! Wanna play again?"))
-    audio_player_publisher.publish(pepper_imitation.msg.AudioPlayerCommand(command=pepper_imitation.msg.AudioPlayerCommand.STOP))
+    tts_publisher.publish(std_msgs.msg.String("\\style=joyful\\ Le jeu est termine! Est-ce que tu veux rejouer?"))
+    audio_player_publisher.publish(pepper_imitation.msg.AudioPlayerCommand(command=pepper_imitation.msg.AudioPlayerCommand.STOP, args= "Good work " + user_data.player_name + ". Score: " + str(user_data.score)))
     rospy.sleep(4.0);
     return 'finished'
 
-@smach.cb_interface(outcomes = ['finished'])
+@smach.cb_interface(outcomes = ['finished'], input_keys=['player_name'])
 def game_stopped(user_data):
     tts_publisher = rospy.Publisher('pepper_imitation/cmd_say', std_msgs.msg.String, queue_size = 1)
     rospy.sleep(1.0);
 
-    tts_publisher.publish(std_msgs.msg.String("The game was cancelled! See you later!"))
+    tts_publisher.publish(std_msgs.msg.String("\\style=joyful\\ Au revoir! A la prochaine fois"))
     rospy.sleep(4.0);
     return 'finished'
 
@@ -150,11 +169,11 @@ class WaitSkeletonState(smach.State) :
         self.start_time = None
         return 'skeleton_not_found'
 
-@smach.cb_interface(outcomes = ['finished'])
+@smach.cb_interface(outcomes = ['finished'], input_keys=['player_name'])
 def skeleton_found(user_data):
     tts_publisher = rospy.Publisher('pepper_imitation/cmd_say', std_msgs.msg.String, queue_size = 1)
     rospy.sleep(1.0);
-    tts_publisher.publish(std_msgs.msg.String("Hi again! Let's start again"))
+    tts_publisher.publish(std_msgs.msg.String("\\style=joyful\\ Rebonjour. Vas-y on recommence"))
     rospy.sleep(4.0);
     return 'finished'
 
@@ -162,15 +181,17 @@ def skeleton_found(user_data):
 def skeleton_not_found(user_data):
     tts_publisher = rospy.Publisher('pepper_imitation/cmd_say', std_msgs.msg.String, queue_size = 1)
     rospy.sleep(1.0);
-    tts_publisher.publish(std_msgs.msg.String("I couldn't find you! We can try again later."))
+    tts_publisher.publish(std_msgs.msg.String("\\style=didactic\\ Je n'ai pas pu vous detecter. Veuillez recommencer ulterieurement"))
     rospy.sleep(4.0);
     return 'finished'
 
-@smach.cb_interface(outcomes = ['finished'])
+@smach.cb_interface(outcomes = ['finished'], input_keys=['player_name'])
 def wait_skeleton_init(user_data):
+    audio_player_publisher = rospy.Publisher('pepper_imitation/cmd_audio_player', pepper_imitation.msg.AudioPlayerCommand, queue_size = 1)
     tts_publisher = rospy.Publisher('pepper_imitation/cmd_say', std_msgs.msg.String, queue_size = 1)
     rospy.sleep(1.0);
-    tts_publisher.publish(std_msgs.msg.String("I cannot see you!"))
+    audio_player_publisher.publish(pepper_imitation.msg.AudioPlayerCommand(command=pepper_imitation.msg.AudioPlayerCommand.STOP))
+    tts_publisher.publish(std_msgs.msg.String("\\style=didactic\\ Je ne peux pas vous detecter!"))
     rospy.sleep(4.0);
     return 'finished'
 

@@ -18,7 +18,7 @@ namespace Pepper
 
     TTSNode::~TTSNode()
     {
-        Say("Goodbye!");
+        Say("Au revoir!");
     }
 
     //Private
@@ -30,7 +30,7 @@ namespace Pepper
     void TTSNode::Say(const std::string& _text)
     {
         //TODO: does this throw exceptions or some kind of error. Docs are not clear at all.
-        tts_service_.call<void>("say", _text);
+        tts_service_.async<void>("say", _text);
     }
 
     void TTSNode::Connect(const std::string& _host, int _port)

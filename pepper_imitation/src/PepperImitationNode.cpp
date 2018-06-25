@@ -7,33 +7,25 @@
 namespace Pepper
 {
     ImitationNode::ImitationNode() :
-        async_spinner_ { 1 }
+        async_spinner_ { 1 },
+        session_ { qi::makeSession() }
     {
-        node_handle_.param("skeleton_tracker_base_frame", skeleton_tracker_base_frame_, skeleton_tracker_base_frame_);
-        node_handle_.param("velocity_scaling_factor",     velocity_scaling_factor_,     velocity_scaling_factor_);
-        node_handle_.param("acceleration_scaling_factor", acceleration_scaling_factor_, acceleration_scaling_factor_);
-        node_handle_.param("goal_joint_tolerance",        goal_joint_tolerance_,        goal_joint_tolerance_);
-        node_handle_.param("goal_position_tolerance",     goal_pos_tolerance_,          goal_pos_tolerance_);
-        node_handle_.param("goal_orientation_tolerance",  goal_orientation_tolerance_,  goal_orientation_tolerance_);
-        node_handle_.param("max_planning_time_",          max_planning_time_,           max_planning_time_);
-        node_handle_.param("max_planning_attempts_",      max_planning_attempts_,       max_planning_attempts_);
-        node_handle_.param("motion_planner_",             motion_planner_,              motion_planner_);
+        std::string host { "localhost" };
+        int port { 9559 };
+
+        node_handle_.param("host", host, host);
+        node_handle_.param("port", port, port);
+        Connect(host, port);
 
         pose_subscriber_            = node_handle_.subscribe("pepper_imitation/cmd_set_pose", 1, &ImitationNode::PoseCallback, this);
         imitation_result_publisher_ = node_handle_.advertise<pepper_imitation::ImitationResult>("pepper_imitation/imitation_result", 1);
 
         async_spinner_.start();
-        SetUpInterface(both_arms_interface_);
-        ResetInterface(both_arms_interface_);
-
-        const auto& named_targets = both_arms_interface_.getNamedTargets();
-        for(const auto& target : named_targets) { ROS_ERROR("Named target: %s", target.c_str()); }
+        Setup();
     }
 
     ImitationNode::~ImitationNode()
     {
-        StopCheckingCurrentPose();
-        ResetInterface(both_arms_interface_);
     }
 
     //Private
@@ -43,11 +35,9 @@ namespace Pepper
 
         try
         {
-            both_arms_interface_.setNamedTarget(pose_name_map_.at(_imitation_msg.pose));
-            PlanTrajectory(both_arms_interface_);
-            ExecuteTrajectory(both_arms_interface_);
+            SetPose(poses_map_.at(_imitation_msg.pose), 5.0);
 
-            ROS_INFO("Checking pose %s for %d seconds", pose_name_map_.at(_imitation_msg.pose).c_str(), _imitation_msg.timeout);
+            ROS_INFO("Checking pose for %d seconds", _imitation_msg.timeout);
             check_pose_ = true;
             check_pose_task_ = std::async( std::launch::async, &ImitationNode::CheckPose, this,
                                            check_poses_functions_.at(_imitation_msg.pose),
@@ -67,6 +57,9 @@ namespace Pepper
 
     void ImitationNode::CheckPose(std::function<bool(void)> _check_pose, const std::chrono::seconds& _timeout)
     {
+        using namespace std::literals::chrono_literals;
+        std::this_thread::sleep_for(1s);
+
         const auto& start_check_time = std::chrono::system_clock::now();
 
         while(check_pose_)
@@ -99,6 +92,14 @@ namespace Pepper
         }
     }
 
+    void ImitationNode::SetPose(const MovementSettings& _movement_data, float _time)
+    {
+        for(size_t i = 0; i < _movement_data.first.size(); i++)
+        {
+            movement_service_.async<void>("angleInterpolation", _movement_data.first[i], _movement_data.second[i], 5.0, true);
+        }
+    }
+
     void ImitationNode::StopCheckingCurrentPose()
     {
         check_pose_ = false;
@@ -114,47 +115,6 @@ namespace Pepper
         pepper_imitation::ImitationResult result_msg;
         result_msg.result = _result;
         imitation_result_publisher_.publish(result_msg);
-    }
-
-    void ImitationNode::SetUpInterface(PlannerInterface& _interface)
-    {
-        _interface.startStateMonitor();
-
-        _interface.setPlannerId(motion_planner_);
-        _interface.setMaxVelocityScalingFactor(velocity_scaling_factor_);
-        _interface.setMaxAccelerationScalingFactor(acceleration_scaling_factor_);
-        _interface.setGoalJointTolerance(goal_joint_tolerance_);
-        _interface.setGoalOrientationTolerance(goal_orientation_tolerance_);
-        _interface.setGoalPositionTolerance(goal_pos_tolerance_);
-        _interface.setPlanningTime(max_planning_time_);
-        _interface.setNumPlanningAttempts(max_planning_attempts_);
-        _interface.setPoseReferenceFrame(pose_reference_frame_);
-    }
-
-    void ImitationNode::PlanTrajectory(PlannerInterface& _interface)
-    {
-        Plan movement_plan;
-        const auto& result = _interface.plan(movement_plan);
-        if(result != moveit::planning_interface::MoveItErrorCode::SUCCESS)
-        {
-            throw std::runtime_error { std::string{ "Error planning trajectory on " } + _interface.getName() };
-        }
-    }
-
-    void ImitationNode::ExecuteTrajectory(PlannerInterface& _interface)
-    {
-        const auto& result = _interface.asyncMove();
-        if(result != moveit::planning_interface::MoveItErrorCode::SUCCESS)
-        {
-            throw std::runtime_error { std::string{ "Error executing trajectory on " } + _interface.getName() };
-        }
-    }
-
-    void ImitationNode::ResetInterface(PlannerInterface& _interface)
-    {
-        _interface.setNamedTarget("home");
-        PlanTrajectory(_interface);
-        ExecuteTrajectory(_interface);
     }
 
     bool ImitationNode::CheckHandsUpPose()
@@ -183,6 +143,48 @@ namespace Pepper
             head_to_left_hand_.getOrigin().distance(head_to_right_hand_.getOrigin()) <= 0.2;
     }
 
+    bool ImitationNode::CheckHandsOnShoulderPose()
+    {
+        const auto& left_hand_to_shoulder  = GetTransform("/left_shoulder", "/left_hand");
+        const auto& right_hand_to_shoulder = GetTransform("/right_shoulder", "/right_hand");
+
+        return left_hand_to_shoulder.getOrigin().y() > 0.0 && right_hand_to_shoulder.getOrigin().y() > 0.0 &&
+            left_hand_to_shoulder.getOrigin().length() <= 0.2 && right_hand_to_shoulder.getOrigin().length() <= 0.2;
+    }
+
+    bool ImitationNode::CheckCrossedArmsPose()
+    {
+        const auto& torso_to_left_hand  = GetTransform("/torso", "/left_hand");
+        const auto& torso_to_right_hand = GetTransform("/torso", "/right_hand");
+
+        return torso_to_left_hand.getOrigin().z() > 0.0 && torso_to_right_hand.getOrigin().z() > 0.0 &&
+            torso_to_left_hand.getOrigin().distance(torso_to_right_hand.getOrigin()) <= 0.2;
+    }
+
+    bool ImitationNode::CheckHandsOnSidePose()
+    {
+        const auto& hip_to_left_hand  = GetTransform("/hip", "/left_hand");
+        const auto& hip_to_right_hand = GetTransform("/hip", "/right_hand");
+
+        return hip_to_left_hand.getOrigin().length() < 0.2 && hip_to_right_hand.getOrigin().length() < 0.2;
+    }
+
+    bool ImitationNode::CheckHandsTogetherPose()
+    {
+        const auto& torso_to_left_hand  = GetTransform("/torso", "/left_hand");
+        const auto& torso_to_right_hand = GetTransform("/torso", "/right_hand");
+
+        return torso_to_left_hand.getOrigin().y() > 0.0 && torso_to_right_hand.getOrigin().y() > 0.0 &&
+            torso_to_left_hand.getOrigin().distance(torso_to_right_hand.getOrigin()) <= 0.2;
+    }
+
+    bool ImitationNode::CheckHandOnMouthPose()
+    {
+        const auto& head_to_right_hand  = GetTransform("/head", "/right_hand");
+
+        return head_to_right_hand.getOrigin().z() > 0.0 && head_to_right_hand.getOrigin().length() < 0.2;
+    }
+
     tf::StampedTransform ImitationNode::GetTransform(const std::string& _origin_frame, const std::string& _end_frame)
     {
         std::string person_id {"_"};
@@ -200,8 +202,36 @@ namespace Pepper
         return transform;
     }
 
-    tf::Vector3 ImitationNode::ToROSAxis(const tf::Vector3& _vector)
+    void ImitationNode::Connect(const std::string& _host, int _port)
     {
-        return { -1.0 * _vector.z(), _vector.x(), _vector.y() };
+        try
+        {
+            session_->connect("tcp://" + _host + ":" + std::to_string(_port)).wait();
+        }
+        catch(const std::exception&)
+        {
+            ROS_FATAL("Error connecting to %s:%d", _host.c_str(), _port);
+            ros::shutdown();
+            return;
+        }
+        movement_service_   = session_->service("ALMotion");
+        posture_service_    = session_->service("ALRobotPosture");
+        autonomous_service_ = session_->service("ALAutonomousLife");
+        background_service_ = session_->service("ALBackgroundMovement");
+    }
+
+    void ImitationNode::Setup()
+    {
+        if(autonomous_service_.call<std::string>("getState") != "disabled")
+        {
+            autonomous_service_.call<void>("setState", "disabled");
+        }
+        GoHome();
+        background_service_.call<void>("setEnabled", false);
+    }
+
+    void ImitationNode::GoHome()
+    {
+        posture_service_.call<void>("goToPosture", "Stand", 3.0);
     }
 }

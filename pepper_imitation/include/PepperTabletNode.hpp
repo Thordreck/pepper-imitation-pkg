@@ -18,7 +18,8 @@ namespace Pepper
             void Connect(const std::string& _host, int _port);
 
         private:
-            void OnDialogInput(int _validation, const std::string& _input_text);
+            void OnDialogInput(std::string _input_text);
+            void OnTouchDown(float _x, float _y);
 
         private:
             ros::NodeHandle node_handle_;
@@ -27,6 +28,8 @@ namespace Pepper
             qi::SessionPtr session_;
             qi::AnyObject  tablet_service_;
             qi::AnyObject  event_subscriber_;
+
+            const std::string script_ { "var name = prompt('Enter votre nom', 'Pepper'); ALTabletBinding.raiseEvent(name)" };
     };
 }
 
