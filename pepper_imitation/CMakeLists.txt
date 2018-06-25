@@ -13,6 +13,7 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   roslib
   geometry_msgs
+  std_msgs
   tf
   moveit_ros_planning_interface
   message_generation

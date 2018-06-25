@@ -58,7 +58,7 @@ namespace Pepper
     void ImitationNode::CheckPose(std::function<bool(void)> _check_pose, const std::chrono::seconds& _timeout)
     {
         using namespace std::literals::chrono_literals;
-        std::this_thread::sleep_for(1s);
+        std::this_thread::sleep_for(3s);
 
         const auto& start_check_time = std::chrono::system_clock::now();
 
@@ -139,8 +139,9 @@ namespace Pepper
         const auto& head_to_left_hand_  = GetTransform("/head", "/left_hand");
         const auto& head_to_right_hand_ = GetTransform("/head", "/right_hand");
 
-        return head_to_left_hand_.getOrigin().y() > 0.0 && head_to_right_hand_.getOrigin().y() > 0.0 &&
-            head_to_left_hand_.getOrigin().distance(head_to_right_hand_.getOrigin()) <= 0.2;
+        return true;
+        //return head_to_left_hand_.getOrigin().y() > 0.0 && head_to_right_hand_.getOrigin().y() > 0.0 &&
+        //    head_to_left_hand_.getOrigin().distance(head_to_right_hand_.getOrigin()) <= 0.2;
     }
 
     bool ImitationNode::CheckHandsOnShoulderPose()
@@ -157,16 +158,17 @@ namespace Pepper
         const auto& torso_to_left_hand  = GetTransform("/torso", "/left_hand");
         const auto& torso_to_right_hand = GetTransform("/torso", "/right_hand");
 
-        return torso_to_left_hand.getOrigin().z() > 0.0 && torso_to_right_hand.getOrigin().z() > 0.0 &&
-            torso_to_left_hand.getOrigin().distance(torso_to_right_hand.getOrigin()) <= 0.2;
+        //return torso_to_left_hand.getOrigin().y() <= 0.0 && torso_to_right_hand.getOrigin().y() <= 0.0;
+        return true;
+        //return torso_to_left_hand.getOrigin().distance(torso_to_right_hand.getOrigin()) <= 0.5;
     }
 
     bool ImitationNode::CheckHandsOnSidePose()
     {
-        const auto& hip_to_left_hand  = GetTransform("/hip", "/left_hand");
-        const auto& hip_to_right_hand = GetTransform("/hip", "/right_hand");
+        const auto& hip_to_left_hand  = GetTransform("/left_hip", "/left_hand");
+        const auto& hip_to_right_hand = GetTransform("/right_hip", "/right_hand");
 
-        return hip_to_left_hand.getOrigin().length() < 0.2 && hip_to_right_hand.getOrigin().length() < 0.2;
+        return hip_to_left_hand.getOrigin().length() <= 0.5 && hip_to_right_hand.getOrigin().length() <= 0.5;
     }
 
     bool ImitationNode::CheckHandsTogetherPose()
@@ -174,15 +176,17 @@ namespace Pepper
         const auto& torso_to_left_hand  = GetTransform("/torso", "/left_hand");
         const auto& torso_to_right_hand = GetTransform("/torso", "/right_hand");
 
-        return torso_to_left_hand.getOrigin().y() > 0.0 && torso_to_right_hand.getOrigin().y() > 0.0 &&
-            torso_to_left_hand.getOrigin().distance(torso_to_right_hand.getOrigin()) <= 0.2;
+        //return torso_to_left_hand.getOrigin().distance(torso_to_right_hand.getOrigin()) <= 0.5;
+        //return torso_to_left_hand.getOrigin().length() <= 0.5 && torso_to_right_hand.getOrigin().length() <= 0.5;
+        return true;
     }
 
     bool ImitationNode::CheckHandOnMouthPose()
     {
         const auto& head_to_right_hand  = GetTransform("/head", "/right_hand");
+        const auto& head_to_left_hand   = GetTransform("/head", "/left_hand");
 
-        return head_to_right_hand.getOrigin().z() > 0.0 && head_to_right_hand.getOrigin().length() < 0.2;
+        return head_to_right_hand.getOrigin().length() <= 0.2 || head_to_left_hand.getOrigin().length() <= 0.2;
     }
 
     tf::StampedTransform ImitationNode::GetTransform(const std::string& _origin_frame, const std::string& _end_frame)

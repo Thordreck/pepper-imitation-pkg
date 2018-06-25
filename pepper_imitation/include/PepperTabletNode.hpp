@@ -30,6 +30,7 @@ namespace Pepper
             qi::AnyObject  event_subscriber_;
 
             const std::string script_ { "var name = prompt('Enter votre nom', 'Pepper'); ALTabletBinding.raiseEvent(name)" };
+            bool input_name_ { false };
     };
 }
 

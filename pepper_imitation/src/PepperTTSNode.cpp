@@ -18,7 +18,7 @@ namespace Pepper
 
     TTSNode::~TTSNode()
     {
-        Say("Au revoir!");
+        Say("^start() Au revoir! ^wait()");
     }
 
     //Private
@@ -38,7 +38,8 @@ namespace Pepper
         try
         {
             session_->connect("tcp://" + _host + ":" + std::to_string(_port)).wait();
-            tts_service_ = session_->service("ALTextToSpeech");
+            //tts_service_ = session_->service("ALTextToSpeech");
+            tts_service_ = session_->service("ALAnimatedSpeech");
         }
         catch(const std::exception&)
         {

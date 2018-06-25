@@ -64,7 +64,7 @@ namespace Pepper
     void AudioPlayerNode::Play(const std::string& _file)
     {
         Stop();
-        file_task_id_ = audio_player_service_.async<int>("loadFile", audio_folder_ + _file).wait();
+        file_task_id_ = audio_player_service_.async<int>("loadFile", audio_folder_ + _file);
         SetVolume(0.8);
         audio_player_service_.async<void>("play", file_task_id_);
     }
