@@ -43,6 +43,6 @@ namespace Pepper
 
     void FaceTrackerNode::EnableFaceTracking(bool _enable)
     {
-        face_detection_service_.call<void>("setRecognitionEnabled", _enable);
+        face_detection_service_.call<void>("setTrackingEnabled", _enable);
     }
 }
