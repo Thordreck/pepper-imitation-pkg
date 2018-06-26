@@ -58,3 +58,7 @@ add_dependencies(${PROJECT_NAME}_audio_player_node ${${PROJECT_NAME}_EXPORTED_TA
 add_executable(${PROJECT_NAME}_tablet_node src/pepper_tablet_node.cpp src/PepperTabletNode.cpp)
 target_link_libraries(${PROJECT_NAME}_tablet_node ${catkin_LIBRARIES} ${naoqi_libqi_LIBRARIES})
 add_dependencies(${PROJECT_NAME}_tablet_node ${${PROJECT_NAME}_EXPORTED_TARGETS})
+
+add_executable(${PROJECT_NAME}_face_tracker_node src/pepper_face_tracker_node.cpp src/PepperFaceTrackerNode.cpp)
+target_link_libraries(${PROJECT_NAME}_face_tracker_node ${catkin_LIBRARIES} ${naoqi_libqi_LIBRARIES})
+add_dependencies(${PROJECT_NAME}_face_tracker_node ${${PROJECT_NAME}_EXPORTED_TARGETS})

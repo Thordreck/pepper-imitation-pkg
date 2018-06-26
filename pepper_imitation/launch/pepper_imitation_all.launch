@@ -1,0 +1,4 @@
+<launch>
+    <include file="$(find pepper_imitation)/launch/pepper_imitation_game.launch" />
+    <include file="$(find pepper_imitation)/launch/pepper_imitation_kinect.launch" />
+</launch>
