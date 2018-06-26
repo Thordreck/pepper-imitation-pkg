@@ -24,7 +24,7 @@ namespace Pepper
 
         private:
             ros::NodeHandle node_handle_;
-            ros::Subscriber tts_subscriber_;
+            ros::Subscriber tracking_subscriber_;
 
             qi::SessionPtr session_;
             qi::AnyObject face_detection_service_;

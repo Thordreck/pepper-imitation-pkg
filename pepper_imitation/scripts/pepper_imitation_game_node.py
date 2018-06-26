@@ -38,11 +38,12 @@ class WaitUserInput(smach.State) :
 
 @smach.cb_interface(outcomes = ['finished'], input_keys=['player_name'], output_keys=['player_name'])
 def init_game(user_data):
-    audio_player_publisher = rospy.Publisher('pepper_imitation/cmd_audio_player', pepper_imitation.msg.AudioPlayerCommand, queue_size = 1)
-    tts_publisher = rospy.Publisher('pepper_imitation/cmd_say', std_msgs.msg.String, queue_size = 1)
+    face_tracking_publisher = rospy.Publisher('pepper_imitation/cmd_set_face_tracking', std_msgs.msg.Bool, queue_size = 1)
+    audio_player_publisher  = rospy.Publisher('pepper_imitation/cmd_audio_player', pepper_imitation.msg.AudioPlayerCommand, queue_size = 1)
     rospy.sleep(1.0);
 
     audio_player_publisher.publish(pepper_imitation.msg.AudioPlayerCommand(command=pepper_imitation.msg.AudioPlayerCommand.PLAY, file="comptine.wav"))
+    face_tracking_publisher.publish(std_msgs.msg.Bool(True))
     rospy.sleep(5.0);
 
     return 'finished'
@@ -128,12 +129,13 @@ def give_feedback(user_data):
 
 @smach.cb_interface(outcomes = ['finished'], input_keys=['player_name', 'score'])
 def end_session(user_data):
-    audio_player_publisher = rospy.Publisher('pepper_imitation/cmd_audio_player', pepper_imitation.msg.AudioPlayerCommand, queue_size = 1)
+    face_tracking_publisher = rospy.Publisher('pepper_imitation/cmd_set_face_tracking', std_msgs.msg.Bool, queue_size = 1)
     tts_publisher = rospy.Publisher('pepper_imitation/cmd_say', std_msgs.msg.String, queue_size = 1)
     rospy.sleep(1.0);
 
     tts_publisher.publish(std_msgs.msg.String("\\style=joyful\\" + "Bravo " + user_data.player_name + ", c'est tres bien! Je me suis bien amuse avec toi. A bientot"))
     rospy.sleep(4.0);
+    face_tracking_publisher.publish(std_msgs.msg.Bool(False))
     return 'finished'
 
 @smach.cb_interface(outcomes = ['finished'], input_keys=['player_name'])

@@ -12,6 +12,8 @@ namespace Pepper
         node_handle_.param("port", port, port);
 
         Connect(host, port);
+
+        tracking_subscriber_ = node_handle_.subscribe("pepper_imitation/cmd_set_face_tracking", 1, &FaceTrackerNode::FaceTrackerCallback, this);
     }
 
     FaceTrackerNode::~FaceTrackerNode()
