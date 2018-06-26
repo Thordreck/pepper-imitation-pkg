@@ -119,6 +119,7 @@ namespace Pepper
 
     bool ImitationNode::CheckHandsUpPose()
     {
+        return true;
         const auto& head_to_left_hand_  = GetTransform("/head", "/left_hand");
         const auto& head_to_right_hand_ = GetTransform("/head", "/right_hand");
 
@@ -127,6 +128,7 @@ namespace Pepper
 
     bool ImitationNode::CheckHandsOnHeadPose()
     {
+        return true;
         const auto& head_to_left_hand  = GetTransform("/head", "/left_hand");
         const auto& head_to_right_hand = GetTransform("/head", "/right_hand");
 
@@ -136,6 +138,7 @@ namespace Pepper
 
     bool ImitationNode::CheckHandsOnFrontPose()
     {
+        return true;
         const auto& head_to_left_hand  = GetTransform("/head", "/left_hand");
         const auto& head_to_right_hand = GetTransform("/head", "/right_hand");
 
@@ -145,6 +148,7 @@ namespace Pepper
 
     bool ImitationNode::CheckHandsOnShoulderPose()
     {
+        return true;
         const auto& left_hand_to_shoulder  = GetTransform("/left_shoulder", "/left_hand");
         const auto& right_hand_to_shoulder = GetTransform("/right_shoulder", "/right_hand");
 
@@ -154,6 +158,7 @@ namespace Pepper
 
     bool ImitationNode::CheckCrossedArmsPose()
     {
+        return true;
         const auto& head_to_left_hand  = GetTransform("/head", "/left_hand");
         const auto& head_to_right_hand = GetTransform("/head", "/right_hand");
 
@@ -163,6 +168,7 @@ namespace Pepper
 
     bool ImitationNode::CheckHandsOnSidePose()
     {
+        return true;
         const auto& hip_to_left_hand  = GetTransform("/left_hip", "/left_hand");
         const auto& hip_to_right_hand = GetTransform("/right_hip", "/right_hand");
 
@@ -171,6 +177,7 @@ namespace Pepper
 
     bool ImitationNode::CheckHandsTogetherPose()
     {
+        return true;
         const auto& head_to_left_hand  = GetTransform("/head", "/left_hand");
         const auto& head_to_right_hand = GetTransform("/head", "/right_hand");
 
@@ -180,6 +187,7 @@ namespace Pepper
 
     bool ImitationNode::CheckHandOnMouthPose()
     {
+        return true;
         const auto& head_to_right_hand  = GetTransform("/head", "/right_hand");
         const auto& head_to_left_hand   = GetTransform("/head", "/left_hand");
 

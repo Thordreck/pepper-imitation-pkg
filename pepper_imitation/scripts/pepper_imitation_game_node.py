@@ -122,7 +122,7 @@ def give_feedback(user_data):
 
     audio_player_publisher.publish(pepper_imitation.msg.AudioPlayerCommand(command=pepper_imitation.msg.AudioPlayerCommand.PAUSE))
     rospy.sleep(1.0)
-    tts_publisher.publish(std_msgs.msg.String("\\style=joyful\\ ^start(animations/Stand/Emotions/Positive/Happy_4) Bravo, bravo" + user_data.player_name + "! ^wait(animations/Stand/Emotions/Positive/Happy_4)" if user_data.positive_feedback else "\\style=didactic\\ ^start(animations/Stand/Gestures/Explain_1)"  + user_data.player_name + ", concentre toi. On reessaye! ^wait(animations/Stand/Gestures/Explain_1)"))
+    tts_publisher.publish(std_msgs.msg.String("\\style=joyful\\ ^start(animations/Stand/Emotions/Positive/Happy_4) Bravo, bravo" + user_data.player_name + "! ^wait(animations/Stand/Emotions/Positive/Happy_4)" if user_data.positive_feedback else "\\style=didactic\\ ^start(animations/Stand/Gestures/Explain_1)"  + "Allez " + user_data.player_name + ", regarde moi. Encore une fois! ^wait(animations/Stand/Gestures/Explain_1)"))
     rospy.sleep(5.0)
     return 'finished'
 
@@ -132,7 +132,7 @@ def end_session(user_data):
     tts_publisher = rospy.Publisher('pepper_imitation/cmd_say', std_msgs.msg.String, queue_size = 1)
     rospy.sleep(1.0);
 
-    tts_publisher.publish(std_msgs.msg.String("\\style=joyful\\" + user_data.player_name + ", le jeu est termine! Tu as ete excellent. Avant de te dire au revoir, on prend une photo souvenir"))
+    tts_publisher.publish(std_msgs.msg.String("\\style=joyful\\" + "Bravo " + user_data.player_name + ", c'est tres bien! Je me suis bien amuse avec toi. A bientot"))
     rospy.sleep(4.0);
     return 'finished'
 
