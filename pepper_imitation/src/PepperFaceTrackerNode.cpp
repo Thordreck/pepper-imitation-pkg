@@ -32,7 +32,8 @@ namespace Pepper
         try
         {
             session_->connect("tcp://" + _host + ":" + std::to_string(_port)).wait();
-            face_detection_service_ = session_->service("ALFaceDetection");
+            tracker_service_ = session_->service("ALTracker");
+            tracker_service_.call<void>("registerTarget", "Face", 10);
         }
         catch(const std::exception& ex)
         {
@@ -43,6 +44,13 @@ namespace Pepper
 
     void FaceTrackerNode::EnableFaceTracking(bool _enable)
     {
-        face_detection_service_.call<void>("setTrackingEnabled", _enable);
+        if(_enable)
+        {
+            tracker_service_.call<void>("track", "Face");
+        }
+        else
+        {
+            tracker_service_.call<void>("stopTracker");
+        }
     }
 }

@@ -27,7 +27,7 @@ namespace Pepper
             ros::Subscriber tracking_subscriber_;
 
             qi::SessionPtr session_;
-            qi::AnyObject face_detection_service_;
+            qi::AnyObject  tracker_service_;
     };
 }
 
