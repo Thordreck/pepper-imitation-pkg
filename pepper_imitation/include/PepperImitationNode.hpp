@@ -33,7 +33,7 @@ namespace Pepper
 
             void PoseCallback(const pepper_imitation::ImitationPose& _imitation_msg);
 
-            void SetPose(const MovementSettings& _movement_data, float _time);
+            void SetPose(const MovementSettings& _movement_data);
             void CheckPose(std::function<bool(void)> _check_pose, const std::chrono::seconds& _timeout);
             void StopCheckingCurrentPose();
             void SendResult(uint8_t _result);
@@ -93,6 +93,8 @@ namespace Pepper
             };
 
             std::string skeleton_tracker_base_frame_ { "/camera_link" };
+            bool   skip_pose_checks_ { false };
+            double movement_time_ { 5.0 };
     };
 }
 

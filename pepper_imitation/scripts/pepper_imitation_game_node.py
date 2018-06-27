@@ -2,17 +2,24 @@
 import rospy
 import smach
 import smach_ros
+import random
 
 import pepper_imitation.msg
 import std_msgs.msg
 import tf
+
+encouragement_sentences       = ["Bravo, bravo ", "Excellent ", "Super "]
+positive_feedback_animations  = ["Emotions/Positive/Happy_4", "Emotions/Positive/Hysterical_1", "Emotions/Positive/Peaceful_1", "Gestures/Excited_1", "Gestures/Enthusiastic_4", "Gestures/Enthusiastic_5" ]
+negative_feedback_animations  = ["Gestures/Explain_1", "Gestures/Explain_10", "Gestures/Explain_11", "Gestures/Explain_2", "Gestures/Explain_3", "Gestures/Explain_4", "Gestures/Explain_5" ]
+hi_animations                 = ["Gestures/Hey_1", "Gestures/Hey_3", "Gestures/Hey_4", "Gestures/Hey_6"]
 
 @smach.cb_interface(outcomes = ['finished'])
 def say_hi(user_data):
     tts_publisher = rospy.Publisher('pepper_imitation/cmd_say', std_msgs.msg.String, queue_size = 1)
     rospy.sleep(1.0);
 
-    tts_publisher.publish(std_msgs.msg.String("\\style=joyful\\ ^start(animations/Stand/Gestures/Hey_1) Bonjour, je m'appelle Pepper. Bienvenue a IMT Atlantique. Veuillez tapez sur l'ecran pour entrer le prenon de l'enfant ^wait(animations/Stand/Gestures/Hey_1)"))
+    hi_animation = "animations/Stand/" + random.choice(hi_animations)
+    tts_publisher.publish(std_msgs.msg.String("\\style=joyful\\ ^start(" + hi_animation + ") Bonjour, je m'appelle Pepper. Bienvenue a IMT Atlantique. Veuillez tapez sur l'ecran pour entrer le prenon de l'enfant ^wait(" + hi_animation + ")"))
     rospy.sleep(5.0);
 
     return 'finished'
@@ -106,7 +113,7 @@ def synchronize_song(user_data, message):
 @smach.cb_interface(outcomes = ['finished'], input_keys = ['pose'])
 def send_pose(user_data):
     pose_publisher = rospy.Publisher('pepper_imitation/cmd_set_pose', pepper_imitation.msg.ImitationPose, queue_size = 1)
-    rospy.sleep(0.1);
+    rospy.sleep(1.0);
     pose_publisher.publish(pepper_imitation.msg.ImitationPose(pose = user_data.pose, timeout = 15))
     return 'finished'
 
@@ -114,15 +121,21 @@ def send_pose(user_data):
 def give_feedback(user_data):
     tts_publisher          = rospy.Publisher('pepper_imitation/cmd_say', std_msgs.msg.String, queue_size = 1)
     audio_player_publisher = rospy.Publisher('pepper_imitation/cmd_audio_player', pepper_imitation.msg.AudioPlayerCommand, queue_size = 1)
-    rospy.sleep(0.1);
-
-    if(user_data.positive_feedback):
-        user_data.score += 20;
-    else:
-        user_data.score -= 5;
+    rospy.sleep(1.0);
 
     audio_player_publisher.publish(pepper_imitation.msg.AudioPlayerCommand(command=pepper_imitation.msg.AudioPlayerCommand.PAUSE))
-    tts_publisher.publish(std_msgs.msg.String("\\style=joyful\\ ^start(animations/Stand/Emotions/Positive/Happy_4) Bravo, bravo" + user_data.player_name + "! ^wait(animations/Stand/Emotions/Positive/Happy_4)" if user_data.positive_feedback else "\\style=didactic\\ ^start(animations/Stand/Gestures/Explain_1)"  + "Allez " + user_data.player_name + ", regarde moi. Encore une fois! ^wait(animations/Stand/Gestures/Explain_1)"))
+
+    feedback_sentence  = ""
+    feedback_animation = ""
+
+    if(user_data.positive_feedback):
+	feedback_animation = "animations/Stand/" + random.choice(positive_feedback_animations)
+	feedback_sentence = "\\style=joyful\\ ^start(" + feedback_animation + ") " + random.choice(encouragement_sentences) + user_data.player_name + "! ^wait(" + feedback_animation + ")"
+    else:
+	feedback_animation = "animations/Stand/" + random.choice(negative_feedback_animations)
+	feedback_sentence = "\\style=didactic\\ ^start(" + feedback_animation + ")"  + "Allez " + user_data.player_name + ", regarde moi. Encore une fois! ^wait(" + feedback_animation + ")"
+
+    tts_publisher.publish(std_msgs.msg.String(feedback_sentence))
     rospy.sleep(5.0)
     return 'finished'
 
@@ -130,7 +143,7 @@ def give_feedback(user_data):
 def end_session(user_data):
     face_tracking_publisher = rospy.Publisher('pepper_imitation/cmd_set_face_tracking', std_msgs.msg.Bool, queue_size = 1)
     tts_publisher = rospy.Publisher('pepper_imitation/cmd_say', std_msgs.msg.String, queue_size = 1)
-    rospy.sleep(0.1);
+    rospy.sleep(1.0);
 
     tts_publisher.publish(std_msgs.msg.String("\\style=joyful\\" + "Bravo " + user_data.player_name + ", c'est tres bien! Je me suis bien amuse avec toi. A bientot"))
     rospy.sleep(4.0);

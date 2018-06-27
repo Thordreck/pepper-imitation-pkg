@@ -13,8 +13,11 @@ namespace Pepper
         std::string host { "localhost" };
         int port { 9559 };
 
-        node_handle_.param("host", host, host);
-        node_handle_.param("port", port, port);
+        node_handle_.param("host",             host, host);
+        node_handle_.param("port",             port, port);
+        node_handle_.param("skip_pose_checks", skip_pose_checks_, skip_pose_checks_);
+        node_handle_.param("movement_time",    movement_time_, movement_time_);
+
         Connect(host, port);
 
         pose_subscriber_            = node_handle_.subscribe("pepper_imitation/cmd_set_pose", 1, &ImitationNode::PoseCallback, this);
@@ -35,7 +38,7 @@ namespace Pepper
 
         try
         {
-            SetPose(poses_map_.at(_imitation_msg.pose), 5.0);
+            SetPose(poses_map_.at(_imitation_msg.pose));
 
             ROS_INFO("Checking pose for %d seconds", _imitation_msg.timeout);
             check_pose_ = true;
@@ -58,7 +61,13 @@ namespace Pepper
     void ImitationNode::CheckPose(std::function<bool(void)> _check_pose, const std::chrono::seconds& _timeout)
     {
         using namespace std::literals::chrono_literals;
-        std::this_thread::sleep_for(1s);
+        std::this_thread::sleep_for(3s);
+
+        if(skip_pose_checks_)
+        {
+            SendResult(pepper_imitation::ImitationResult::SUCCESS);
+            return;
+        }
 
         const auto& start_check_time = std::chrono::system_clock::now();
 
@@ -92,11 +101,11 @@ namespace Pepper
         }
     }
 
-    void ImitationNode::SetPose(const MovementSettings& _movement_data, float _time)
+    void ImitationNode::SetPose(const MovementSettings& _movement_data)
     {
         for(size_t i = 0; i < _movement_data.first.size(); i++)
         {
-            movement_service_.async<void>("angleInterpolation", _movement_data.first[i], _movement_data.second[i], 5.0, true);
+            movement_service_.async<void>("angleInterpolation", _movement_data.first[i], _movement_data.second[i], movement_time_, true);
         }
     }
 
@@ -119,7 +128,6 @@ namespace Pepper
 
     bool ImitationNode::CheckHandsUpPose()
     {
-        return true;
         const auto& head_to_left_hand_  = GetTransform("/head", "/left_hand");
         const auto& head_to_right_hand_ = GetTransform("/head", "/right_hand");
 
@@ -128,7 +136,6 @@ namespace Pepper
 
     bool ImitationNode::CheckHandsOnHeadPose()
     {
-        return true;
         const auto& head_to_left_hand  = GetTransform("/head", "/left_hand");
         const auto& head_to_right_hand = GetTransform("/head", "/right_hand");
 
@@ -138,7 +145,6 @@ namespace Pepper
 
     bool ImitationNode::CheckHandsOnFrontPose()
     {
-        return true;
         const auto& head_to_left_hand  = GetTransform("/head", "/left_hand");
         const auto& head_to_right_hand = GetTransform("/head", "/right_hand");
 
@@ -148,7 +154,6 @@ namespace Pepper
 
     bool ImitationNode::CheckHandsOnShoulderPose()
     {
-        return true;
         const auto& left_hand_to_shoulder  = GetTransform("/left_shoulder", "/left_hand");
         const auto& right_hand_to_shoulder = GetTransform("/right_shoulder", "/right_hand");
 
@@ -158,7 +163,6 @@ namespace Pepper
 
     bool ImitationNode::CheckCrossedArmsPose()
     {
-        return true;
         const auto& head_to_left_hand  = GetTransform("/head", "/left_hand");
         const auto& head_to_right_hand = GetTransform("/head", "/right_hand");
 
@@ -168,7 +172,6 @@ namespace Pepper
 
     bool ImitationNode::CheckHandsOnSidePose()
     {
-        return true;
         const auto& hip_to_left_hand  = GetTransform("/left_hip", "/left_hand");
         const auto& hip_to_right_hand = GetTransform("/right_hip", "/right_hand");
 
@@ -177,7 +180,6 @@ namespace Pepper
 
     bool ImitationNode::CheckHandsTogetherPose()
     {
-        return true;
         const auto& head_to_left_hand  = GetTransform("/head", "/left_hand");
         const auto& head_to_right_hand = GetTransform("/head", "/right_hand");
 
@@ -187,7 +189,6 @@ namespace Pepper
 
     bool ImitationNode::CheckHandOnMouthPose()
     {
-        return true;
         const auto& head_to_right_hand  = GetTransform("/head", "/right_hand");
         const auto& head_to_left_hand   = GetTransform("/head", "/left_hand");
 
