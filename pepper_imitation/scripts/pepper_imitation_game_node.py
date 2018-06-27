@@ -106,7 +106,7 @@ def synchronize_song(user_data, message):
 @smach.cb_interface(outcomes = ['finished'], input_keys = ['pose'])
 def send_pose(user_data):
     pose_publisher = rospy.Publisher('pepper_imitation/cmd_set_pose', pepper_imitation.msg.ImitationPose, queue_size = 1)
-    rospy.sleep(1.0);
+    rospy.sleep(0.1);
     pose_publisher.publish(pepper_imitation.msg.ImitationPose(pose = user_data.pose, timeout = 15))
     return 'finished'
 
@@ -114,7 +114,7 @@ def send_pose(user_data):
 def give_feedback(user_data):
     tts_publisher          = rospy.Publisher('pepper_imitation/cmd_say', std_msgs.msg.String, queue_size = 1)
     audio_player_publisher = rospy.Publisher('pepper_imitation/cmd_audio_player', pepper_imitation.msg.AudioPlayerCommand, queue_size = 1)
-    rospy.sleep(1.0);
+    rospy.sleep(0.1);
 
     if(user_data.positive_feedback):
         user_data.score += 20;
@@ -122,7 +122,6 @@ def give_feedback(user_data):
         user_data.score -= 5;
 
     audio_player_publisher.publish(pepper_imitation.msg.AudioPlayerCommand(command=pepper_imitation.msg.AudioPlayerCommand.PAUSE))
-    rospy.sleep(1.0)
     tts_publisher.publish(std_msgs.msg.String("\\style=joyful\\ ^start(animations/Stand/Emotions/Positive/Happy_4) Bravo, bravo" + user_data.player_name + "! ^wait(animations/Stand/Emotions/Positive/Happy_4)" if user_data.positive_feedback else "\\style=didactic\\ ^start(animations/Stand/Gestures/Explain_1)"  + "Allez " + user_data.player_name + ", regarde moi. Encore une fois! ^wait(animations/Stand/Gestures/Explain_1)"))
     rospy.sleep(5.0)
     return 'finished'
@@ -131,7 +130,7 @@ def give_feedback(user_data):
 def end_session(user_data):
     face_tracking_publisher = rospy.Publisher('pepper_imitation/cmd_set_face_tracking', std_msgs.msg.Bool, queue_size = 1)
     tts_publisher = rospy.Publisher('pepper_imitation/cmd_say', std_msgs.msg.String, queue_size = 1)
-    rospy.sleep(1.0);
+    rospy.sleep(0.1);
 
     tts_publisher.publish(std_msgs.msg.String("\\style=joyful\\" + "Bravo " + user_data.player_name + ", c'est tres bien! Je me suis bien amuse avec toi. A bientot"))
     rospy.sleep(4.0);

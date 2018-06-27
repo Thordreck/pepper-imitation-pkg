@@ -58,7 +58,7 @@ namespace Pepper
     void ImitationNode::CheckPose(std::function<bool(void)> _check_pose, const std::chrono::seconds& _timeout)
     {
         using namespace std::literals::chrono_literals;
-        std::this_thread::sleep_for(3s);
+        std::this_thread::sleep_for(1s);
 
         const auto& start_check_time = std::chrono::system_clock::now();
 
