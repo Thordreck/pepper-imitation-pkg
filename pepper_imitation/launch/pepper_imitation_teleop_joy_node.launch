@@ -1,0 +1,9 @@
+<launch>
+    <node pkg="pepper_imitation" name="pepper_imitation_teleop_joy_node" type="pepper_imitation_teleop_joy_node" output="screen" />
+
+    <param name="linear_scale"    type="double" value="2.0" />
+    <param name="angular_scale"   type="double" value="2.0" />
+    <param name="x_movement_axis" type="int"    value="0" />
+    <param name="y_movement_axis" type="int"    value="1" />
+    <param name="rotation_axis"   type="int"    value="2" />
+</launch>

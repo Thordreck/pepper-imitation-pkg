@@ -30,9 +30,9 @@ void shut_down_callback(const XmlRpc::XmlRpcValue& _params, XmlRpc::XmlRpcValue&
 int main(int argc, char **argv)
 {
     ros::init(argc, argv, "pepper_tts_node", ros::init_options::NoSigintHandler);
-    ros::Rate rate(20);
     signal(SIGINT, sigint_handler);
     Pepper::TTSNode pepper_node;
+    ros::Rate rate(20);
     
     while(!request_shutdown_flag)
     {

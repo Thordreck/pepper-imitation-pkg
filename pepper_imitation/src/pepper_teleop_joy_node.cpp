@@ -1,7 +1,7 @@
 #include <signal.h>
 #include <ros/xmlrpc_manager.h>
 
-#include "PepperFaceTrackerNode.hpp"
+#include "PepperTeleopJoyNode.hpp"
 
 sig_atomic_t volatile request_shutdown_flag { 0 };
 
@@ -29,9 +29,9 @@ void shut_down_callback(const XmlRpc::XmlRpcValue& _params, XmlRpc::XmlRpcValue&
 
 int main(int argc, char **argv)
 {
-    ros::init(argc, argv, "pepper_face_tracker_node", ros::init_options::NoSigintHandler);
+    ros::init(argc, argv, "pepper_teleop_joy_node", ros::init_options::NoSigintHandler);
     signal(SIGINT, sigint_handler);
-    Pepper::FaceTrackerNode pepper_node;
+    Pepper::TeleopJoyNode pepper_node;
     ros::Rate rate(20);
     
     while(!request_shutdown_flag)

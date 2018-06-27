@@ -14,6 +14,7 @@ find_package(catkin REQUIRED COMPONENTS
   roslib
   geometry_msgs
   std_msgs
+  sensor_msgs
   tf
   moveit_ros_planning_interface
   message_generation
@@ -32,6 +33,8 @@ add_message_files(
 generate_messages(
     DEPENDENCIES
     std_msgs
+    sensor_msgs
+    geometry_msgs
 )
 
 catkin_package(CATKIN_DEPENDS message_runtime)
@@ -62,3 +65,7 @@ add_dependencies(${PROJECT_NAME}_tablet_node ${${PROJECT_NAME}_EXPORTED_TARGETS}
 add_executable(${PROJECT_NAME}_face_tracker_node src/pepper_face_tracker_node.cpp src/PepperFaceTrackerNode.cpp)
 target_link_libraries(${PROJECT_NAME}_face_tracker_node ${catkin_LIBRARIES} ${naoqi_libqi_LIBRARIES})
 add_dependencies(${PROJECT_NAME}_face_tracker_node ${${PROJECT_NAME}_EXPORTED_TARGETS})
+
+add_executable(${PROJECT_NAME}_teleop_joy_node src/pepper_teleop_joy_node.cpp src/PepperTeleopJoyNode.cpp)
+target_link_libraries(${PROJECT_NAME}_teleop_joy_node ${catkin_LIBRARIES})
+add_dependencies(${PROJECT_NAME}_teleop_joy_node ${${PROJECT_NAME}_EXPORTED_TARGETS})
