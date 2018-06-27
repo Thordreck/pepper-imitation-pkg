@@ -4,6 +4,8 @@
 #include <ros/ros.h>
 #include <sensor_msgs/Joy.h>
 
+#include <qi/session.hpp>
+
 namespace Pepper
 {
     class TeleopJoyNode final
@@ -14,11 +16,14 @@ namespace Pepper
 
         private:
             void JoyCallback(const sensor_msgs::Joy& _joy_msg);
+            void Connect(const std::string& _host, int _port);
 
         private:
             ros::NodeHandle node_handle_;
             ros::Subscriber joy_subscriber_;
-            ros::Publisher  cmd_vel_publisher_;
+
+            qi::SessionPtr session_;
+            qi::AnyObject  motion_service_;
 
             double linear_scale_  { 2.0 };
             double angular_scale_ { 2.0 };

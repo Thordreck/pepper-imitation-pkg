@@ -1,9 +1,19 @@
 <launch>
-    <node pkg="pepper_imitation" name="pepper_imitation_teleop_joy_node" type="pepper_imitation_teleop_joy_node" output="screen" />
+    <node respawn="true" pkg="joy" type="joy_node" name="pepper_imitation_joy_node">
+    <param name="dev"               type="string" value="/dev/input/js0" />
+    <param name="deadzone"          type="double" value="0.12" />
+    <param name="autorepeat_rate"   type="double" value="5.0" />
+    <param name="coalesce_interval" type="double" value="0.1" />
+    </node>
 
+    <node pkg="pepper_imitation" name="pepper_imitation_teleop_joy_node" type="pepper_imitation_teleop_joy_node" output="screen" />
     <param name="linear_scale"    type="double" value="2.0" />
     <param name="angular_scale"   type="double" value="2.0" />
     <param name="x_movement_axis" type="int"    value="1" />
     <param name="y_movement_axis" type="int"    value="0" />
     <param name="rotation_axis"   type="int"    value="3" />
+
+    <param name="host" type="string" value="10.77.3.19" />
+    <param name="port" type="int"    value="9559" />
+
 </launch>

@@ -67,5 +67,5 @@ target_link_libraries(${PROJECT_NAME}_face_tracker_node ${catkin_LIBRARIES} ${na
 add_dependencies(${PROJECT_NAME}_face_tracker_node ${${PROJECT_NAME}_EXPORTED_TARGETS})
 
 add_executable(${PROJECT_NAME}_teleop_joy_node src/pepper_teleop_joy_node.cpp src/PepperTeleopJoyNode.cpp)
-target_link_libraries(${PROJECT_NAME}_teleop_joy_node ${catkin_LIBRARIES})
+target_link_libraries(${PROJECT_NAME}_teleop_joy_node ${catkin_LIBRARIES} ${naoqi_libqi_LIBRARIES})
 add_dependencies(${PROJECT_NAME}_teleop_joy_node ${${PROJECT_NAME}_EXPORTED_TARGETS})
