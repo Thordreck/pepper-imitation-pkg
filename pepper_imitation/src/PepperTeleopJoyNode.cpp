@@ -19,6 +19,7 @@ namespace Pepper
 
         joy_subscriber_    = node_handle_.subscribe("joy", 1, &TeleopJoyNode::JoyCallback, this);
         Connect(host, port);
+        Setup();
     }
 
     //Private
@@ -35,12 +36,23 @@ namespace Pepper
         try
         {
             session_->connect("tcp://" + _host + ":" + std::to_string(_port)).wait();
-            motion_service_  = session_->service("ALMotion");
+            motion_service_     = session_->service("ALMotion");
+            autonomous_service_ = session_->service("ALAutonomousLife");
+            background_service_ = session_->service("ALBackgroundMovement");
         }
         catch(const std::exception& ex)
         {
             ROS_FATAL("Error connecting to %s:%d: %s", _host.c_str(), _port, ex.what());
             ros::shutdown();
         }
+    }
+
+    void TeleopJoyNode::Setup()
+    {
+        if(autonomous_service_.call<std::string>("getState") != "disabled")
+        {
+            autonomous_service_.call<void>("setState", "disabled");
+        }
+        background_service_.call<void>("setEnabled", false);
     }
 }

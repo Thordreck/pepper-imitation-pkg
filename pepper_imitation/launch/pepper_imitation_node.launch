@@ -1,8 +1,8 @@
 <launch>
     <node pkg="pepper_imitation" name="pepper_imitation_node" type="pepper_imitation_node" output="screen" />
 
-    <param name="host"             type="string" value="10.77.3.19" />
-    <param name="port"             type="int"    value="9559" />
-    <param name="skip_pose_checks" type="bool"   value="true" />
+    <param name="host"             type="string" value="$(env NAO_IP)" />
+    <param name="port"             type="int"    value="$(env NAO_PORT)" />
+    <param name="skip_pose_checks" type="bool"   value="false" />
     <param name="movement_time"    type="double" value="1.0" />
 </launch>

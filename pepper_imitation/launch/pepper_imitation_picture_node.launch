@@ -1,6 +1,6 @@
 <launch>
     <node pkg="pepper_imitation" name="pepper_imitation_picture_node" type="pepper_imitation_picture_node.py" output="screen" />
 
-    <param name="host" type="string" value="10.77.3.19" />
-    <param name="port" type="int" value="9559" />
+    <param name="host" type="string" value="$(NAO_IP)" />
+    <param name="port" type="int" value="$(NAO_PORT)" />
 </launch>

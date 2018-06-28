@@ -13,7 +13,7 @@
     <param name="y_movement_axis" type="int"    value="0" />
     <param name="rotation_axis"   type="int"    value="3" />
 
-    <param name="host" type="string" value="10.77.3.19" />
-    <param name="port" type="int"    value="9559" />
+    <param name="host" type="string" value="$(env NAO_IP)" />
+    <param name="port" type="int"    value="$(env NAO_PORT)" />
 
 </launch>

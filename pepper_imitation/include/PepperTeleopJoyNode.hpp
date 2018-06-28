@@ -17,6 +17,7 @@ namespace Pepper
         private:
             void JoyCallback(const sensor_msgs::Joy& _joy_msg);
             void Connect(const std::string& _host, int _port);
+            void Setup();
 
         private:
             ros::NodeHandle node_handle_;
@@ -24,6 +25,8 @@ namespace Pepper
 
             qi::SessionPtr session_;
             qi::AnyObject  motion_service_;
+            qi::AnyObject  autonomous_service_;
+            qi::AnyObject  background_service_;
 
             double linear_scale_  { 2.0 };
             double angular_scale_ { 2.0 };

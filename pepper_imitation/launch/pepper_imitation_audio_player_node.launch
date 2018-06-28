@@ -1,7 +1,7 @@
 <launch>
     <node pkg="pepper_imitation" name="pepper_imitation_audio_player_node" type="pepper_imitation_audio_player_node" output="screen" />
 
-    <param name="host"         type="string" value="10.77.3.19" />
-    <param name="port"         type="int"    value="9559" />
+    <param name="host"         type="string" value="$(env NAO_IP)" />
+    <param name="port"         type="int"    value="$(env NAO_PORT)" />
     <param name="audio_folder" type="string" value="/home/nao/resources/audio/" />
 </launch>

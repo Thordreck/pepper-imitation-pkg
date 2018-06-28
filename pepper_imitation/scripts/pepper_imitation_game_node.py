@@ -15,12 +15,14 @@ hi_animations                 = ["Gestures/Hey_1", "Gestures/Hey_3", "Gestures/H
 
 @smach.cb_interface(outcomes = ['finished'])
 def say_hi(user_data):
+    face_tracking_publisher = rospy.Publisher('pepper_imitation/cmd_set_face_tracking', std_msgs.msg.Bool, queue_size = 1)
     tts_publisher = rospy.Publisher('pepper_imitation/cmd_say', std_msgs.msg.String, queue_size = 1)
-    rospy.sleep(1.0);
+    rospy.sleep(5.0);
 
     hi_animation = "animations/Stand/" + random.choice(hi_animations)
+    face_tracking_publisher.publish(std_msgs.msg.Bool(True))
     tts_publisher.publish(std_msgs.msg.String("\\style=joyful\\ ^start(" + hi_animation + ") Bonjour, je m'appelle Pepper. Bienvenue a IMT Atlantique. Veuillez tapez sur l'ecran pour entrer le prenon de l'enfant ^wait(" + hi_animation + ")"))
-    rospy.sleep(5.0);
+    rospy.sleep(7.0);
 
     return 'finished'
 
@@ -45,12 +47,10 @@ class WaitUserInput(smach.State) :
 
 @smach.cb_interface(outcomes = ['finished'], input_keys=['player_name'], output_keys=['player_name'])
 def init_game(user_data):
-    face_tracking_publisher = rospy.Publisher('pepper_imitation/cmd_set_face_tracking', std_msgs.msg.Bool, queue_size = 1)
     audio_player_publisher  = rospy.Publisher('pepper_imitation/cmd_audio_player', pepper_imitation.msg.AudioPlayerCommand, queue_size = 1)
     rospy.sleep(1.0);
 
     audio_player_publisher.publish(pepper_imitation.msg.AudioPlayerCommand(command=pepper_imitation.msg.AudioPlayerCommand.PLAY, file="comptine.wav"))
-    face_tracking_publisher.publish(std_msgs.msg.Bool(True))
     rospy.sleep(5.0);
 
     return 'finished'
@@ -141,13 +141,13 @@ def give_feedback(user_data):
 
 @smach.cb_interface(outcomes = ['finished'], input_keys=['player_name', 'score'])
 def end_session(user_data):
-    face_tracking_publisher = rospy.Publisher('pepper_imitation/cmd_set_face_tracking', std_msgs.msg.Bool, queue_size = 1)
+    #face_tracking_publisher = rospy.Publisher('pepper_imitation/cmd_set_face_tracking', std_msgs.msg.Bool, queue_size = 1)
     tts_publisher = rospy.Publisher('pepper_imitation/cmd_say', std_msgs.msg.String, queue_size = 1)
     rospy.sleep(1.0);
 
     tts_publisher.publish(std_msgs.msg.String("\\style=joyful\\" + "Bravo " + user_data.player_name + ", c'est tres bien! Je me suis bien amuse avec toi. A bientot"))
     rospy.sleep(4.0);
-    face_tracking_publisher.publish(std_msgs.msg.Bool(False))
+    #face_tracking_publisher.publish(std_msgs.msg.Bool(False))
     return 'finished'
 
 @smach.cb_interface(outcomes = ['finished'], input_keys=['player_name'])
