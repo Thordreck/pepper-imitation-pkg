@@ -8,10 +8,10 @@ sudo apt-key adv --keyserver hkp://ha.pool.sks-keyservers.net:80 --recv-key 421C
 echo -e "Installing ROS dependencies..."
 sudo apt update
 sudo apt -y install ros-kinetic-catkin ros-kinetic-desktop-full ros-kinetic-pepper-bringup \
-                    ros-kinetic-pepper-control ros-kinetic-pepper-dcm-bringup ros-kinetic-pepper-description \
+                    ros-kinetic-pepper-control ros-kinetic-pepper-bringup ros-kinetic-pepper-description \
                     ros-kinetic-pepper-gazebo-plugin ros-kinetic-pepper-robot ros-kinetic-pepper-sensors-py \
                     ros-kinetic-executive-smach ros-kinetic-smach ros-kinetic-smach-msgs \
-                    ros-kinetic-smach-ros ros-kinetic-smach-viewer
+                    ros-kinetic-smach-ros ros-kinetic-smach-viewer ros-kinetic-naoqi-driver
 
 echo -e "Initializing rosdep..."
 sudo rosdep init
